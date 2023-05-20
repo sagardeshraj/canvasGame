@@ -1,0 +1,184 @@
+"<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      div {
+        position: relative;
+      }
+      canvas {
+        border: 1px solid black;
+        margin-left: 30%;
+      }
+      button {
+        padding: 10px;
+        background-color: #0b0819;
+        border: none;
+        cursor: pointer;
+        color: white;
+        border-radius: 5px;
+      }
+      button:hover {
+        background-color: #150f2a;
+      }
+      h1 {
+        background-color: #0b0819;
+        padding: 10px;
+        color: aliceblue;
+        text-align: center;
+        font-family: "Lucida Sans", "Lucida Sans Regular", "Lucida Grande",
+          "Lucida Sans Unicode", Geneva, Verdana, sans-serif;
+      }
+    </style>
+  </head>
+  <body>
+    <div>
+      <h1>Bubble App</h1>
+      <canvas id="myCanvas"></canvas>
+      <button onclick="resetCanvas()">Reset</button>
+    </div>
+
+    <script>
+      var canvas = document.getElementById("myCanvas");
+      var ctx = canvas.getContext("2d");
+      canvas.height = 500;
+      canvas.width = 500;
+
+      var initialCircleColors = ["red", "green", "blue", "purple"];
+
+      var circles = [
+        { x: 60, y: 100, radius: 40, color: "red" },
+        { x: 60, y: 200, radius: 40, color: "green" },
+        { x: 60, y: 300, radius: 40, color: "blue" },
+        { x: 60, y: 400, radius: 40, color: "purple" },
+      ];
+
+      var arrows = [
+        {
+          x: canvas.width - 20,
+          y: canvas.height / 5,
+          length: 50,
+          color: "red",
+        },
+        {
+          x: canvas.width - 20,
+          y: (canvas.height * 2) / 5,
+          length: 50,
+          color: "green",
+        },
+        {
+          x: canvas.width - 20,
+          y: (canvas.height * 3) / 5,
+          length: 50,
+          color: "blue",
+        },
+        {
+          x: canvas.width - 20,
+          y: (canvas.height * 4) / 5,
+          length: 50,
+          color: "purple",
+        },
+      ];
+
+      var velocity = 6; // Adjust this value to control the speed of the arrow
+
+      var clickedCircleIndex = -1;
+      var isArrowTouchingCircle = [false, false, false, false];
+
+      function drawCircle(circle) {
+        ctx.beginPath();
+        ctx.arc(circle.x, circle.y, circle.radius, 0, Math.PI * 2);
+        ctx.fillStyle = circle.color;
+        ctx.fill();
+        ctx.closePath();
+      }
+
+      function drawArrow(arrow) {
+        ctx.beginPath();
+        ctx.moveTo(arrow.x, arrow.y);
+        ctx.lineTo(arrow.x - arrow.length, arrow.y);
+        ctx.strokeStyle = arrow.color;
+        ctx.stroke();
+        ctx.closePath();
+
+        // Draw arrow head
+        var arrowHeadSize = 10;
+        ctx.beginPath();
+        ctx.moveTo(arrow.x - arrow.length, arrow.y - arrowHeadSize / 2);
+        ctx.lineTo(arrow.x - arrow.length - arrowHeadSize, arrow.y);
+        ctx.lineTo(arrow.x - arrow.length, arrow.y + arrowHeadSize / 2);
+        ctx.fillStyle = arrow.color;
+        ctx.fill();
+        ctx.closePath();
+      }
+
+      function updateCanvas() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        for (var i = 0; i < circles.length; i++) {
+          if (
+            i === clickedCircleIndex &&
+            arrows[i].x >
+              circles[i].x + circles[i].radius + arrows[i].length + 12
+          ) {
+            arrows[i].x -= velocity;
+          }
+          drawCircle(circles[i]);
+          drawArrow(arrows[i]);
+
+          /////////////////////////
+
+          var circleCenterX = circles[i].x;
+          var circleCenterY = circles[i].y;
+          var arrowTipX = arrows[i].x - 12;
+          var arrowTipY = arrows[i].y;
+
+          var distance = Math.sqrt(
+            Math.pow(arrowTipX - circleCenterX, 2) +
+              Math.pow(arrowTipY - circleCenterY, 2)
+          );
+
+          if (distance <= circles[i].radius + arrows[i].length) {
+            isArrowTouchingCircle[i] = true;
+            circles[i].color = "grey";
+          }
+
+          ////////////////////////////////////
+        }
+
+        requestAnimationFrame(updateCanvas);
+      }
+
+      function handleClick(event) {
+        var rect = canvas.getBoundingClientRect();
+        var clickX = event.clientX - rect.left;
+        var clickY = event.clientY - rect.top;
+
+        for (var i = 0; i < circles.length; i++) {
+          var distance = Math.sqrt(
+            Math.pow(clickX - circles[i].x, 2) +
+              Math.pow(clickY - circles[i].y, 2)
+          );
+
+          if (distance <= circles[i].radius) {
+            clickedCircleIndex = i;
+            break;
+          }
+        }
+      }
+
+      const colors = ["blue", "green", "yellow", "purple"];
+
+      function resetCanvas() {
+        circles.forEach(function (circle, index) {
+          circle.color = initialCircleColors[index];
+          arrows[index].x = canvas.width - 20;
+          isArrowTouchingCircle[index] = false;
+        });
+        clickedCircleIndex = -1;
+      }
+
+      updateCanvas();
+      canvas.addEventListener("click", handleClick);
+    </script>
+  </body>
+</html>
